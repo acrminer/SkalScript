@@ -1,5 +1,6 @@
 import { Token } from "../lexer/Token"
 import { TokenType } from "../lexer/TokenType"
+import { Expression } from "./AST"
 
 
 //the Parser converts tokens into an AST
@@ -51,13 +52,13 @@ export class Parser {
   }
 
   //main parser function for expressions
-  parseExpression() {
+  parseExpression(): Expression {
     return this.parseEquality()
   }
 
   //parse == expressions
-  private parseEquality() {
-    let left = this.parseComparison()
+  private parseEquality(): Expression {
+    let left: Expression = this.parseComparison()
 
     while (this.match(TokenType.DOUBLE_EQUAL)) {
       const operator = "=="
@@ -75,8 +76,8 @@ export class Parser {
   }
 
   //parse < and > expressions
-  private parseComparison() {
-    let left = this.parseAdditive()
+  private parseComparison(): Expression {
+    let left: Expression = this.parseAdditive()
 
     while (true) {
       if (this.match(TokenType.LESS)) {
@@ -108,8 +109,8 @@ export class Parser {
   }
 
   //parse + and - expressions
-  private parseAdditive() {
-    let left = this.parseMultiplicative()
+  private parseAdditive(): Expression {
+    let left: Expression = this.parseMultiplicative()
 
     while (true) {
       if (this.match(TokenType.PLUS)) {
@@ -141,8 +142,8 @@ export class Parser {
   }
 
   //parse * and / expressions
-  private parseMultiplicative() {
-    let left = this.parsePrimary()
+  private parseMultiplicative(): Expression {
+    let left: Expression = this.parsePrimary()
 
     while (true) {
       if (this.match(TokenType.STAR)) {
@@ -174,7 +175,7 @@ export class Parser {
   }
 
   //parse integers, identifiers, booleans, unit, and parenthesized expressions
-  private parsePrimary() {
+  private parsePrimary(): Expression {
     const token = this.peek()
 
     //parse integer literals
@@ -212,13 +213,13 @@ export class Parser {
     if (this.match(TokenType.IDENTIFIER)) {
       return {
         kind: "Identifier",
-        name: token.value
+        name: token.value! //the above if case being true and Lexer's readIndentifier should guarantee that value is defined.
       }
     }
 
     //parse parenthesized expressions
     if (this.match(TokenType.LPAREN)) {
-      const expr = this.parseExpression()
+      const expr: Expression = this.parseExpression()
       this.consume(TokenType.RPAREN, "Expected ')' after expression.")
       return expr
     }
