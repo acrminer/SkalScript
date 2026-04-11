@@ -135,12 +135,12 @@ export class Parser {
 
   //parse * and / expressions
   private parseMultiplicative(): Expression {
-    let left: Expression = this.parsePrimary()
+    let left: Expression = this.parseCall()
 
     while (true) {
       if (this.match(TokenType.STAR)) {
         const operator = "*"
-        const right = this.parsePrimary()
+        const right = this.parseCall()
 
         left = {
           kind: "BinaryExpression",
@@ -150,7 +150,7 @@ export class Parser {
         }
       } else if (this.match(TokenType.SLASH)) {
         const operator = "/"
-        const right = this.parsePrimary()
+        const right = this.parseCall()
 
         left = {
           kind: "BinaryExpression",
@@ -164,6 +164,65 @@ export class Parser {
     }
 
     return left
+  }
+
+  //scan ahead to check if < is clearly the start of <...>(...)
+  //does not consume any tokens or change parser state
+  private looksLikeTypeInstantiation(): boolean {
+    let i = this.position + 1   // start just after <
+    let depth = 1
+    while (i < this.tokens.length) {
+      if (this.tokens[i].type === TokenType.LESS) depth++
+      else if (this.tokens[i].type === TokenType.GREATER) {
+        depth--
+        if (depth === 0) {
+          return i + 1 < this.tokens.length &&
+                 this.tokens[i + 1].type === TokenType.LPAREN
+        }
+      }
+      i++
+    }
+    return false
+  }
+
+  //parse comma-separated expression arguments
+  private parseArgs(): Expression[] {
+    const args: Expression[] = []
+    if (!this.check(TokenType.RPAREN)) {
+      args.push(this.parseExpression())
+      while (this.match(TokenType.COMMA)) {
+        args.push(this.parseExpression())
+      }
+    }
+    return args
+  }
+
+  //call_exp ::= primary_exp (type_instantiation ( comma_exp ))*
+  private parseCall(): Expression {
+    let callee: Expression = this.parsePrimary()
+
+    while (true) {
+      if (this.check(TokenType.LESS) && this.looksLikeTypeInstantiation()) {
+        this.advance()  // consume <
+        const typeArgs: Type[] = [this.parseType()]
+        while (this.match(TokenType.COMMA)) {
+          typeArgs.push(this.parseType())
+        }
+        this.consume(TokenType.GREATER, "Expected '>' after type arguments.")
+        this.consume(TokenType.LPAREN, "Expected '(' after type arguments.")
+        const args = this.parseArgs()
+        this.consume(TokenType.RPAREN, "Expected ')' after arguments.")
+        callee = { kind: "CallExpression", callee, typeArgs, args }
+      } else if (this.match(TokenType.LPAREN)) {
+        const args = this.parseArgs()
+        this.consume(TokenType.RPAREN, "Expected ')' after arguments.")
+        callee = { kind: "CallExpression", callee, typeArgs: [], args }
+      } else {
+        break
+      }
+    }
+
+    return callee
   }
 
   //parse integers, identifiers, booleans, unit, and parenthesized expressions
