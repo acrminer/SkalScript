@@ -92,12 +92,13 @@ export class Parser {
   }
 
   //parse < and > expressions (at most one < or >)
-  private parseComparison(): Expression {
-    const left: Expression = this.parseAdditive()
+ private parseComparison(): Expression {
+    let left: Expression = this.parseAdditive()
 
+    while (true) {
     if (this.match(TokenType.LESS)) {
       const right = this.parseAdditive()
-      return {
+      left = {
         kind: "BinaryExpression",
         operator: "<",
         left,
@@ -105,15 +106,19 @@ export class Parser {
       }
     }
 
-    if (this.match(TokenType.GREATER)) {
+    else if (this.match(TokenType.GREATER)) {
       const right = this.parseAdditive()
-      return {
+      left = {
         kind: "BinaryExpression",
         operator: ">",
         left,
         right
       }
     }
+    else {
+      break
+    }
+  }
 
     return left
   }
