@@ -112,12 +112,11 @@ describe("Parser more tests", () => {
             right: { kind: "UnitLiteral" }
         })
     })
-
-    it("parses println", () => {
+it("parses println", () => {
     const parser = new Parser(tokenize("println(1)"))
     expect(parser.parseExpression()).toEqual({
       kind: "PrintlnExpression",
-      argument: {
+      arg: {
         kind: "IntegerLiteral",
         value: 1
       }
@@ -132,10 +131,11 @@ describe("Parser more tests", () => {
         kind: "Identifier",
         name: "f"
       },
-      arguments: [
+      args: [
         { kind: "IntegerLiteral", value: 1 },
         { kind: "IntegerLiteral", value: 2 }
-      ]
+      ],
+      typeArgs: []
     })
   })
 
@@ -149,29 +149,41 @@ describe("Parser more tests", () => {
           kind: "Identifier",
           name: "f"
         },
-        arguments: [{ kind: "IntegerLiteral", value: 1 }]
+        args: [{ kind: "IntegerLiteral", value: 1 }],
+        typeArgs: []
       },
-      arguments: [{ kind: "IntegerLiteral", value: 2 }]
+      args: [{ kind: "IntegerLiteral", value: 2 }],
+      typeArgs: []
     })
   })
 
   it("parses block expression", () => {
-    const parser = new Parser(tokenize("{ 1 2 3 }"))
-    expect(parser.parseExpression()).toEqual({
-      kind: "BlockExpression",
-      expressions: [
-        { kind: "IntegerLiteral", value: 1 },
-        { kind: "IntegerLiteral", value: 2 },
-        { kind: "IntegerLiteral", value: 3 }
-      ]
-    })
+  const parser = new Parser(tokenize("{ val x: Int = 1; x }"))
+
+  expect(parser.parseExpression()).toEqual({
+    kind: "BlockExpression",
+    stmts: [
+      {
+        kind: "ValStatement",
+        name: "x",
+        type: { kind: "BuiltinType", name: "Int" },
+        value: { kind: "IntegerLiteral", value: 1 }
+      }
+    ],
+    expr: {
+      kind: "Identifier",
+      name: "x"
+    }
   })
+})
 
   it("parses program", () => {
     const parser = new Parser(tokenize("1 + 2"))
     expect(parser.parseProgram()).toEqual({
       kind: "Program",
-      body: {
+      algDefs: [],
+      funcDefs: [],
+      expr: {
         kind: "BinaryExpression",
         operator: "+",
         left: { kind: "IntegerLiteral", value: 1 },
