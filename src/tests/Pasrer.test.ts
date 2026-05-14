@@ -196,4 +196,94 @@ describe("Parser", () => {
       }
     })
   })
+
+  //NEW TESTS
+
+  //test nested parentheses
+  it("parses nested parentheses", () => {
+    const parser = new Parser(tokenize("((1 + 2) * 3)"))
+    expect(parser.parseExpression()).toEqual({
+      kind: "BinaryExpression",
+      operator: "*",
+      left: {
+        kind: "BinaryExpression",
+        operator: "+",
+        left: {
+          kind: "IntegerLiteral",
+          value: 1
+        },
+        right: {
+          kind: "IntegerLiteral",
+          value: 2
+        }
+      },
+      right: {
+        kind: "IntegerLiteral",
+        value: 3
+      }
+    })
+  })
+
+  //test chained addition
+  it("parses chained addition left associatively", () => {
+    const parser = new Parser(tokenize("1 + 2 + 3"))
+    expect(parser.parseExpression()).toEqual({
+      kind: "BinaryExpression",
+      operator: "+",
+      left: {
+        kind: "BinaryExpression",
+        operator: "+",
+        left: {
+          kind: "IntegerLiteral",
+          value: 1
+        },
+        right: {
+          kind: "IntegerLiteral",
+          value: 2
+        }
+      },
+      right: {
+        kind: "IntegerLiteral",
+        value: 3
+      }
+    })
+  })
+
+  //test multiplication chain
+  it("parses chained multiplication", () => {
+    const parser = new Parser(tokenize("2 * 3 * 4"))
+    expect(parser.parseExpression()).toEqual({
+      kind: "BinaryExpression",
+      operator: "*",
+      left: {
+        kind: "BinaryExpression",
+        operator: "*",
+        left: {
+          kind: "IntegerLiteral",
+          value: 2
+        },
+        right: {
+          kind: "IntegerLiteral",
+          value: 3
+        }
+      },
+      right: {
+        kind: "IntegerLiteral",
+        value: 4
+      }
+    })
+  })
+
+  //test invalid token sequence
+  it("throws on invalid token sequence", () => {
+    const parser = new Parser(tokenize("1 + * 2"))
+    expect(() => parser.parseExpression()).toThrow()
+  })
+
+  //test empty input
+  it("throws on empty input", () => {
+    const parser = new Parser(tokenize(""))
+    expect(() => parser.parseExpression()).toThrow()
+  })
+
 })

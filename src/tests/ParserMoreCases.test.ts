@@ -192,3 +192,90 @@ it("parses println", () => {
     })
   })
 })
+//test lambda expression parsing
+it("parses lambda expressions", () => {
+  const parser = new Parser(
+    tokenize("(x: Int) => x + 1")
+  )
+
+  expect(parser.parseExpression()).toEqual({
+    kind: "LambdaExpression",
+    params: [
+      {
+        name: "x",
+        type: {
+          kind: "BuiltinType",
+          name: "Int"
+        }
+      }
+    ],
+    body: {
+      kind: "BinaryExpression",
+      operator: "+",
+      left: {
+        kind: "Identifier",
+        name: "x"
+      },
+      right: {
+        kind: "IntegerLiteral",
+        value: 1
+      }
+    }
+  })
+})
+
+
+//test function call parsing
+it("parses function call expressions", () => {
+  const parser = new Parser(
+    tokenize("add(1, 2)")
+  )
+
+  expect(parser.parseExpression()).toEqual({
+    kind: "CallExpression",
+    callee: {
+      kind: "Identifier",
+      name: "add"
+    },
+    args: [
+      {
+        kind: "IntegerLiteral",
+        value: 1
+      },
+      {
+        kind: "IntegerLiteral",
+        value: 2
+      }
+    ],
+    typeArgs: []
+  })
+})
+it("parses match expressions", () => {
+  const parser = new Parser(
+    tokenize(`
+      match x {
+        case y => y
+      }
+    `)
+  )
+
+  expect(parser.parseExpression()).toEqual({
+    kind: "MatchExpression",
+    subject: {
+      kind: "Identifier",
+      name: "x"
+    },
+    cases: [
+      {
+        pattern: {
+          kind: "VariablePattern",
+          name: "y"
+        },
+        body: {
+          kind: "Identifier",
+          name: "y"
+        }
+      }
+    ]
+  })
+})

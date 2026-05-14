@@ -94,7 +94,73 @@ test("arrow token", () => {
 test("keyword token", () => {
   const tokens = getTokens("val")
   expect(tokens).not.toContain(TokenType.IDENTIFIER)
+
 })
+//test multiplication token
+test("multiply token", () => {
+  const tokens = getTokens("*")
+  expect(tokens).toContain(TokenType.STAR)
+})
+
+
+//test division token
+test("division token", () => {
+  const tokens = getTokens("/")
+  expect(tokens).toContain(TokenType.SLASH)
+})
+
+
+//test less-than token
+test("less than token", () => {
+  const tokens = getTokens("<")
+  expect(tokens).toContain(TokenType.LESS)
+})
+
+
+//test greater-than token
+test("greater than token", () => {
+  const tokens = getTokens(">")
+  expect(tokens).toContain(TokenType.GREATER)
+})
+
+
+//test multiple identifiers
+test("multiple identifiers", () => {
+  const tokens = getTokens("x y z")
+  expect(tokens.filter(t => t === TokenType.IDENTIFIER).length).toBe(3)
+})
+
+
+//test whitespace handling
+test("ignores whitespace", () => {
+  const tokens = getTokens("   123   ")
+  expect(tokens).toContain(TokenType.INTEGER)
+})
+
+
+//test mixed expression
+test("mixed expression tokens", () => {
+  const tokens = getTokens("x + 5")
+
+  expect(tokens).toContain(TokenType.IDENTIFIER)
+  expect(tokens).toContain(TokenType.PLUS)
+  expect(tokens).toContain(TokenType.INTEGER)
+})
+
+
+//test boolean keyword
+test("boolean keyword token", () => {
+  const tokens = getTokens("true")
+  expect(tokens).not.toContain(TokenType.IDENTIFIER)
+})
+
+
+//test EOF token always exists
+test("includes EOF token", () => {
+  const tokens = getTokens("x")
+  expect(tokens[tokens.length - 1]).toBe(TokenType.EOF)
+})
+
 
 //This file tests the main functionality of the lexer by 
 //providing simple input strings and checking that the correct token
